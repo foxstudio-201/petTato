@@ -122,21 +122,16 @@ export class ApiServer {
       res.json({ ok: true })
     })
 
-    // ---- auto-update -----------------------------------------------------
-    app.get('/api/update/state', (_req, res) =>
-      res.json({ current: this.deps.appVersion, ...this.deps.updater.lastState })
-    )
-    app.post('/api/update/check', (_req, res) => {
-      void this.deps.updater.check()
-      res.json({ ok: true })
-    })
-    app.post('/api/update/download', (_req, res) => {
-      void this.deps.updater.download()
-      res.json({ ok: true })
-    })
+    // ---- update (GitHub API + direct installer download, no metadata) ----
+    app.get('/api/update/state', (_req, res) => res.json({ current: this.deps.appVersion }))
+    app.get('/api/update/check', async (_req, res) => res.json(await this.deps.updater.check()))
     app.post('/api/update/install', (_req, res) => {
+      void this.deps.updater.install()
       res.json({ ok: true })
-      this.deps.updater.install()
+    })
+    app.post('/api/update/open', (req, res) => {
+      this.deps.updater.openDownloadPage(req.body?.url)
+      res.json({ ok: true })
     })
 
     // ---- interaction endpoints ------------------------------------------

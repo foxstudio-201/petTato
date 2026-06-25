@@ -2,12 +2,9 @@ appId: com.pettato.desktop
 productName: petTaTo
 copyright: Copyright © petTaTo
 
-# Auto-update source: GitHub Releases. electron-builder also writes the
-# latest*.yml metadata files used by electron-updater to detect new versions.
-publish:
-  provider: github
-  owner: foxstudio-201
-  repo: petTato
+# No `publish` block on purpose: that stops electron-builder from generating the
+# latest*.yml update-metadata files. The app checks for updates via the GitHub
+# API instead, so it never needs (or produces) yml/blockmap/zip artifacts.
 
 directories:
   buildResources: build
@@ -54,6 +51,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  differentialPackage: false # don't emit .blockmap delta-update files
 
 # ---------------- macOS ----------------
 mac:

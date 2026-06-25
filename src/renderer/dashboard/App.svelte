@@ -64,7 +64,7 @@
   let showModGuide = $state(false)
   let modsDir = $state('')
   let voiceUnsupported = $state(false)
-  let upd = $state<{ phase: string; current?: string; version?: string; percent?: number; message?: string }>({ phase: 'idle' })
+  let upd = $state<{ phase: string; current?: string; latest?: string; url?: string; percent?: number; message?: string }>({ phase: 'idle' })
 
   function flash(msg: string) {
     toast = msg
@@ -110,9 +110,8 @@
       (s) => (snap = s),
       (l) => flash('💬 ' + l.text),
       (s) => {
+        // Live download/install progress streamed from the updater.
         upd = { ...upd, ...s }
-        // Auto-download as soon as a newer release is found.
-        if (s.phase === 'available') api.updateDownload()
       }
     )
     setInterval(async () => {
@@ -207,19 +206,19 @@
     saveConfig()
   }
 
-  function checkUpdate() {
+  async function checkUpdate() {
     upd = { ...upd, phase: 'checking', message: undefined }
-    api.updateCheck()
+    upd = { ...upd, ...(await api.updateCheck()) }
   }
 
   let updStatus = $derived(() => {
     switch (upd.phase) {
       case 'checking': return tr('Checking for updates…')
-      case 'available': return tr('Update available') + (upd.version ? ' v' + upd.version : '')
+      case 'available': return tr('Update available') + (upd.latest ? ' v' + upd.latest : '')
       case 'downloading': return tr('Downloading update…') + ' ' + (upd.percent ?? 0) + '%'
-      case 'ready': return tr('Update ready') + (upd.version ? ' v' + upd.version : '')
+      case 'installing': return tr('Installing…')
+      case 'ready': return tr('Downloaded — finish in the installer.')
       case 'none': return tr("You're up to date.")
-      case 'dev': return tr('Updates only work in the installed app.')
       case 'error': return tr('Update check failed') + (upd.message ? ': ' + upd.message : '')
       default: return ''
     }
@@ -591,10 +590,10 @@
             <div class="card-head" style="justify-content:space-between;">
               <div class="row" style="gap:10px;"><Icon name="download" size={20} color="var(--accent)" /><h3>{tr('Updates')}</h3></div>
               <div class="row" style="gap:8px;">
-                {#if upd.phase === 'ready'}
-                  <button class="btn" onclick={() => api.updateInstall()}><Icon name="power" size={16} color="#052420" /> {tr('Restart & install')}</button>
+                {#if upd.phase === 'available'}
+                  <button class="btn" onclick={() => api.updateInstall()}><Icon name="download" size={16} color="#052420" /> {tr('Download & install')}</button>
                 {:else}
-                  <button class="btn secondary" disabled={upd.phase === 'checking' || upd.phase === 'downloading'} onclick={checkUpdate}><Icon name="download" size={16} color="var(--accent)" /> {tr('Check for updates')}</button>
+                  <button class="btn secondary" disabled={upd.phase === 'checking' || upd.phase === 'downloading' || upd.phase === 'installing'} onclick={checkUpdate}><Icon name="download" size={16} color="var(--accent)" /> {tr('Check for updates')}</button>
                 {/if}
               </div>
             </div>
@@ -602,8 +601,8 @@
             {#if updStatus()}
               <p class="muted" style="margin:8px 0 0;font-size:13px;">{updStatus()}</p>
             {/if}
-            {#if upd.phase === 'downloading'}
-              <div class="progress" style="margin-top:10px;"><span style={`width:${upd.percent ?? 0}%`}></span></div>
+            {#if upd.phase === 'downloading' || upd.phase === 'installing'}
+              <div class="progress" style="margin-top:10px;"><span style={`width:${upd.percent ?? (upd.phase === 'installing' ? 100 : 0)}%`}></span></div>
             {/if}
           </div>
 

@@ -99,7 +99,7 @@ async function bootstrap(): Promise<void> {
 
   // 5. Local API + web control panel
   const rendererDir = join(__dirname, '..', 'renderer')
-  updater = new Updater()
+  updater = new Updater(app.getVersion())
   api = new ApiServer({
     engine,
     rendererDir,
