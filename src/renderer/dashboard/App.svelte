@@ -209,7 +209,7 @@
       <div class="brand-badge"><SpritePreview {snap} size={36} pack={cfg?.appearance.spritePack ?? 'default'} /></div>
       <div>
         <div class="brand-name">petTaTo</div>
-        <div class="brand-sub">virtual companion</div>
+        <div class="brand-sub">{tr('virtual companion')}</div>
       </div>
     </div>
 
@@ -433,17 +433,17 @@
         {:else if tab === 'interactions'}
           <div class="card">
             <div class="card-head"><Icon name="controller" size={20} color="var(--amber)" /><h3>{tr('Interaction settings')}</h3></div>
-            <div class="field"><label for="qd">Quiz difficulty</label>
-              <select id="qd" bind:value={cfg.interaction.quizDifficulty} onchange={saveConfig}><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+            <div class="field"><label for="qd">{tr('Quiz difficulty')}</label>
+              <select id="qd" bind:value={cfg.interaction.quizDifficulty} onchange={saveConfig}><option value="easy">{tr('Easy')}</option><option value="medium">{tr('Medium')}</option><option value="hard">{tr('Hard')}</option></select>
             </div>
-            <div class="field"><label>Reward scale · {cfg.interaction.rewardScale.toFixed(2)}×</label><input type="range" min="0.25" max="3" step="0.05" bind:value={cfg.interaction.rewardScale} onchange={saveConfig} /></div>
-            <div class="switch"><span class="sw-label"><Icon name="bell" size={18} color="var(--accent)" /> Notifications & speech</span><input type="checkbox" bind:checked={cfg.interaction.notificationsEnabled} onchange={saveConfig} /></div>
+            <div class="field"><label>{tr('Reward scale')} · {cfg.interaction.rewardScale.toFixed(2)}×</label><input type="range" min="0.25" max="3" step="0.05" bind:value={cfg.interaction.rewardScale} onchange={saveConfig} /></div>
+            <div class="switch"><span class="sw-label"><Icon name="bell" size={18} color="var(--accent)" /> {tr('Notifications & speech')}</span><input type="checkbox" bind:checked={cfg.interaction.notificationsEnabled} onchange={saveConfig} /></div>
           </div>
           <div class="card" style="margin-top:16px;">
             <div class="card-head"><Icon name="sparkle" size={20} color="var(--green)" /><h3>{tr('Quick actions')}</h3></div>
             <div class="row wrap" style="gap:8px;">
               {#each [['feed', 'bowl', 'var(--amber)'], ['pet', 'heart', 'var(--pink)'], ['play', 'puzzle', 'var(--green)'], ['talk', 'chat', 'var(--accent-2)'], ['clean', 'drop', 'var(--accent-2)'], ['gift', 'gift', 'var(--green)'], ['train', 'dumbbell', 'var(--indigo)'], ['sleep', 'moon', 'var(--indigo)'], ['wake', 'sun', 'var(--amber)']] as [a, icon, color]}
-                <button class="btn secondary" onclick={() => doInteract(a)}><Icon name={icon} size={18} {color} /> {a}</button>
+                <button class="btn secondary" onclick={() => doInteract(a)}><Icon name={icon} size={18} {color} /> {tr(a)}</button>
               {/each}
             </div>
           </div>
@@ -452,8 +452,8 @@
           <div class="card play-card">
             <div class="card-head"><Icon name="puzzle" size={20} color="var(--green)" /><h3>{tr('Mini-game')}</h3></div>
             {#if !game}
-              <p class="muted">Win games to boost happiness, curiosity and social stats.</p>
-              <button class="btn" onclick={startGame}><Icon name="playCircle" size={18} color="#052420" /> New game ({cfg.interaction.quizDifficulty})</button>
+              <p class="muted">{tr('Win games to boost happiness, curiosity and social stats.')}</p>
+              <button class="btn" onclick={startGame}><Icon name="playCircle" size={18} color="#052420" /> {tr('New game')} ({cfg.interaction.quizDifficulty})</button>
               {#if gameResult}<p class="result">{gameResult}</p>{/if}
             {:else}
               <span class="badge">{game.kind}</span>
@@ -468,27 +468,27 @@
           <div class="card">
             <div class="card-head"><Icon name="save" size={20} color="var(--accent-2)" /><h3>{tr('Save manager')}</h3></div>
             <div class="row wrap" style="gap:10px;">
-              <button class="btn" onclick={async () => { const r = await api.backup() as any; backups = await api.backups(); flash('Backup: ' + (r.file?.split('/').pop() ?? 'done')) }}><Icon name="save" size={18} color="#052420" /> Backup Now</button>
-              <a class="btn secondary" href={api.exportUrl()} download><Icon name="download" size={18} color="var(--accent)" /> Export</a>
-              <label class="btn secondary"><Icon name="upload" size={18} color="var(--accent-2)" /> Import<input type="file" accept=".sqlite" style="display:none" onchange={importSave} /></label>
+              <button class="btn" onclick={async () => { const r = await api.backup() as any; backups = await api.backups(); flash(t('Backup') + ': ' + (r.file?.split('/').pop() ?? 'done')) }}><Icon name="save" size={18} color="#052420" /> {tr('Backup Now')}</button>
+              <a class="btn secondary" href={api.exportUrl()} download><Icon name="download" size={18} color="var(--accent)" /> {tr('Export')}</a>
+              <label class="btn secondary"><Icon name="upload" size={18} color="var(--accent-2)" /> {tr('Import')}<input type="file" accept=".sqlite" style="display:none" onchange={importSave} /></label>
             </div>
           </div>
           <div class="card" style="margin-top:16px;">
             <div class="card-head"><Icon name="clock" size={20} color="var(--muted)" /><h3>{tr('Backups')}</h3></div>
             {#if backups.length}
               <ul class="rows">
-                {#each backups as b}<li><span class="muted" style="font-size:12px;">{b}</span><button class="btn ghost" onclick={async () => { await api.restore(b); await refreshAll(); flash('Restored') }}>Restore</button></li>{/each}
+                {#each backups as b}<li><span class="muted" style="font-size:12px;">{b}</span><button class="btn ghost" onclick={async () => { await api.restore(b); await refreshAll(); flash(t('Restored')) }}>{tr('Restore')}</button></li>{/each}
               </ul>
-            {:else}<p class="muted">No backups yet.</p>{/if}
+            {:else}<p class="muted">{tr('No backups yet.')}</p>{/if}
           </div>
 
         {:else if tab === 'mods'}
           <div class="card">
             <div class="card-head"><Icon name="cube" size={20} color="var(--indigo)" /><h3>{tr('Installed mods')}</h3></div>
-            <p class="muted">Drop mods into the <code>mods/</code> folder in your data directory, then restart.</p>
+            <p class="muted">{tr('Drop mods into the mods/ folder in your data directory, then restart.')}</p>
             {#if mods.length}
               <ul class="rows">{#each mods as m}<li><span><b>{m.meta?.name ?? m.id}</b> <span class="muted">v{m.meta?.version ?? '?'}</span></span><span class="muted">{m.meta?.author ?? ''}</span></li>{/each}</ul>
-            {:else}<p class="muted">No mods installed. See the Modding Guide.</p>{/if}
+            {:else}<p class="muted">{tr('No mods installed. See the Modding Guide.')}</p>{/if}
           </div>
 
         {:else if tab === 'settings'}
@@ -516,7 +516,7 @@
               </div>
               <div class="switch"><span class="sw-label"><Icon name="cube" size={18} color="var(--green)" /> {tr('Allow opening other apps')}</span><input type="checkbox" bind:checked={cfg.voice.allowAppLaunch} onchange={saveConfig} /></div>
               {#if cfg.voice.enabled && voiceUnsupported}
-                <p class="muted" style="margin:10px 0 0;font-size:12px;color:var(--warn);">Speech recognition isn't available in this build — typed commands still work (e.g. "open browser", "come here").</p>
+                <p class="muted" style="margin:10px 0 0;font-size:12px;color:var(--warn);">{tr("Speech recognition isn't available in this build — typed commands still work (e.g. \"open browser\", \"come here\").")}</p>
               {/if}
             </div>
           </div>
@@ -526,7 +526,7 @@
               <div class="field"><label>{tr('Simulation tick')} · {cfg.behaviour.tickMs} ms</label><input type="range" min="250" max="3000" step="50" bind:value={cfg.behaviour.tickMs} onchange={saveConfig} /></div>
               <div class="field"><label>{tr('Auto-save every')} · {cfg.system.autosaveSeconds}s</label><input type="range" min="5" max="120" step="5" bind:value={cfg.system.autosaveSeconds} onchange={saveConfig} /></div>
               <div class="field"><label for="port">{tr('Control-panel port (restart to apply)')}</label><input id="port" type="number" bind:value={cfg.system.apiPort} onchange={saveConfig} /></div>
-              <div class="switch"><span class="sw-label"><Icon name="power" size={18} color="var(--green)" /> {tr('Launch on login (autostart)')}</span><input type="checkbox" bind:checked={cfg.system.autostart} onchange={async () => { await api.autostart(cfg!.system.autostart); flash('Autostart updated') }} /></div>
+              <div class="switch"><span class="sw-label"><Icon name="power" size={18} color="var(--green)" /> {tr('Launch on login (autostart)')}</span><input type="checkbox" bind:checked={cfg.system.autostart} onchange={async () => { await api.autostart(cfg!.system.autostart); flash(t('Autostart updated')) }} /></div>
             </div>
             <div class="card">
               <div class="card-head"><Icon name="eye" size={20} color="var(--pink)" /><h3>{tr('Accessibility')}</h3></div>
@@ -542,11 +542,11 @@
               <div class="card-head"><Icon name="bolt" size={20} color="var(--accent)" /><h3>{tr('Performance')}</h3></div>
               {#if metrics}
                 <div class="metrics">
-                  <div class="metric"><span class="muted">Uptime</span><b>{fmtDuration(metrics.uptimeMs)}</b></div>
-                  <div class="metric"><span class="muted">Ticks</span><b>{metrics.ticks}</b></div>
+                  <div class="metric"><span class="muted">{tr('Uptime')}</span><b>{fmtDuration(metrics.uptimeMs)}</b></div>
+                  <div class="metric"><span class="muted">{tr('Ticks')}</span><b>{metrics.ticks}</b></div>
                   <div class="metric"><span class="muted">RSS</span><b>{metrics.rssMb} MB</b></div>
                   <div class="metric"><span class="muted">Heap</span><b>{metrics.heapMb} MB</b></div>
-                  <div class="metric"><span class="muted">Tick</span><b>{metrics.tickMs} ms</b></div>
+                  <div class="metric"><span class="muted">{tr('Tick')}</span><b>{metrics.tickMs} ms</b></div>
                   <div class="metric"><span class="muted">DB</span><b>{(metrics.dbBytes / 1024).toFixed(1)} KB</b></div>
                 </div>
               {/if}
@@ -558,15 +558,15 @@
           </div>
           <div class="card" style="margin-top:16px;">
             <div class="card-head"><Icon name="code" size={20} color="var(--muted)" /><h3>{tr('Logs')}</h3></div>
-            <pre class="json logs">{logs.join('\n') || 'Logs refresh every 3s on this tab…'}</pre>
+            <pre class="json logs">{logs.join('\n') || tr('Logs refresh every 3s on this tab…')}</pre>
           </div>
 
         {:else if tab === 'about'}
           <div class="card">
             <div class="card-head"><Icon name="info" size={20} color="var(--accent)" /><h3>{tr('About petTaTo')}</h3></div>
-            <p>A fully offline desktop virtual pet. No cloud, no accounts, no telemetry — everything stays on your machine.</p>
+            <p>{tr('A fully offline desktop virtual pet. No cloud, no accounts, no telemetry — everything stays on your machine.')}</p>
             <p class="muted">Electron + SQLite · Svelte + TypeScript</p>
-            <p class="muted">Version 1.0.0</p>
+            <p class="muted">{tr('Version')} 1.0.0</p>
           </div>
         {/if}
       </div>
@@ -577,13 +577,13 @@
     <div class="modal-backdrop" onclick={() => (showGuide = false)} role="presentation">
       <div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div class="card-head" style="justify-content:space-between;">
-          <div class="row" style="gap:10px;"><Icon name="info" size={20} color="var(--accent-2)" /><h3>How to make a sprite pack</h3></div>
+          <div class="row" style="gap:10px;"><Icon name="info" size={20} color="var(--accent-2)" /><h3>{tr('How to make a sprite pack')}</h3></div>
           <button class="btn ghost" onclick={() => (showGuide = false)}>✕</button>
         </div>
-        <p class="muted">A sprite pack is a folder with a <code>manifest.json</code> and one horizontal PNG strip per animation. Click <b>Import sprite pack</b> and choose that folder.</p>
+        <p class="muted">{tr('A sprite pack is a folder with a manifest.json and one horizontal PNG strip per animation. Click Import sprite pack and choose that folder.')}</p>
         <ol class="guide">
-          <li>Each animation PNG is a horizontal strip of frames, all the same size (e.g. <b>80×80</b> or <b>128×128</b> — any size works).</li>
-          <li><code>manifest.json</code> declares the frame size and animations:</li>
+          <li>{tr('Each animation PNG is a horizontal strip of frames, all the same size (e.g. 80×80 or 128×128 — any size works).')}</li>
+          <li>{tr('manifest.json declares the frame size and animations:')}</li>
         </ol>
         <pre class="json">{`{
   "version": 1,
@@ -600,7 +600,7 @@
   "house": "house.png",
   "icon": "icon.png"
 }`}</pre>
-        <p class="muted">Required animations: idle, walk, run, jump, sleeping, happy, excited, sad, hungry, talking, playing, eating, sick, exploring, sitting, bored, returningHome. Missing ones fall back to <code>idle</code>. Run <code>npm run gen:assets</code> to produce a reference pack you can edit.</p>
+        <p class="muted">{tr('Required animations: idle, walk, run, jump, sleeping, happy, excited, sad, hungry, talking, playing, eating, sick, exploring, sitting, bored, returningHome. Missing ones fall back to idle. Run npm run gen:assets to produce a reference pack you can edit.')}</p>
       </div>
     </div>
   {/if}
