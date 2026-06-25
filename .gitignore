@@ -1,0 +1,8 @@
+node_modules/
+out/
+dist/
+generated_assets/
+build/icon.png
+*.log
+.DS_Store
+data/

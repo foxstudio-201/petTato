@@ -1,0 +1,26 @@
+{
+  "id": "example-springy",
+  "name": "Springy Personality Pack",
+  "version": "1.0.0",
+  "author": "petTaTo team",
+  "description": "An example mod that adds a hyperactive 'Springy' personality and a few extra spontaneous lines. Copy this folder into your petTaTo data directory's mods/ folder and restart.",
+  "personalities": [
+    {
+      "id": "springy",
+      "name": "Springy",
+      "activityRate": 1.7,
+      "happinessDecay": 0.85,
+      "socialNeed": 1.2,
+      "exploration": 1.5,
+      "talkativeness": 0.95,
+      "tone": "hyper"
+    }
+  ],
+  "dialogue": [
+    "Boing boing! Watch me bounce, {name} the human!",
+    "I have SO much energy today!",
+    "Race you across the screen!"
+  ],
+  "spritePacks": [],
+  "houses": []
+}

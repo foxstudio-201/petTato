@@ -1,0 +1,47 @@
+{
+  "name": "pettato",
+  "productName": "petTaTo",
+  "version": "1.0.0",
+  "description": "petTaTo — a lightweight, feature-rich offline desktop virtual pet that lives on your desktop.",
+  "author": "petTaTo",
+  "license": "MIT",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build",
+    "build:run": "electron-vite build && electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && svelte-check --tsconfig tsconfig.web.json",
+    "gen:assets": "node scripts/generate-assets.mjs",
+    "test": "node --test",
+    "pack:dir": "electron-vite build && electron-builder --dir",
+    "dist": "electron-vite build && electron-builder",
+    "dist:linux": "electron-vite build && electron-builder --linux AppImage deb rpm",
+    "dist:win": "electron-vite build && electron-builder --win nsis msi",
+    "dist:mac": "electron-vite build && electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pngjs": "^7.0.0",
+    "sql.js": "^1.12.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.4",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "@types/pngjs": "^6.0.5",
+    "@types/sql.js": "^1.4.9",
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "svelte": "^5.16.0",
+    "svelte-check": "^4.1.1",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  },
+  "allowScripts": {
+    "electron@33.4.11": true,
+    "esbuild@0.21.5": true
+  }
+}

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>petTaTo</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        user-select: none;
+      }
+      .wrap {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+      }
+      .card {
+        width: 380px;
+        padding: 40px 30px 30px;
+        border-radius: 26px;
+        text-align: center;
+        color: #eaf0fb;
+        background:
+          radial-gradient(500px 300px at 25% 10%, rgba(122, 162, 255, 0.3), transparent 60%),
+          radial-gradient(420px 300px at 85% 95%, rgba(95, 208, 197, 0.28), transparent 60%),
+          linear-gradient(160deg, #1a2f4e, #0a0e18);
+        background-color: #11182a;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+        animation: rise 0.5s cubic-bezier(0.2, 0.9, 0.2, 1);
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.97);
+        }
+      }
+      .logo {
+        position: relative;
+        width: 104px;
+        height: 104px;
+        margin: 0 auto 18px;
+      }
+      .badge {
+        width: 104px;
+        height: 104px;
+        border-radius: 28px;
+        background: linear-gradient(150deg, #5668a8, #212c4e);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+        animation: bob 2.2s ease-in-out infinite;
+        overflow: hidden;
+      }
+      /* CSS mascot: a cute blob face */
+      .blob {
+        position: relative;
+        width: 64px;
+        height: 58px;
+        background: linear-gradient(180deg, #6fe0d2, #4fb6a6);
+        border-radius: 50% 50% 46% 46%;
+        box-shadow: inset 0 -6px 0 rgba(0, 0, 0, 0.08);
+      }
+      .blob::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        width: 4px;
+        height: 12px;
+        background: #3a9; /* sprout stem */
+        transform: translateX(-50%);
+        border-radius: 3px;
+      }
+      .blob::after {
+        content: '';
+        position: absolute;
+        top: -16px;
+        left: 58%;
+        width: 12px;
+        height: 7px;
+        background: #7ed87e;
+        border-radius: 60% 0 60% 0;
+      }
+      .eye {
+        position: absolute;
+        top: 22px;
+        width: 9px;
+        height: 11px;
+        background: #fff;
+        border-radius: 50%;
+      }
+      .eye.l {
+        left: 14px;
+      }
+      .eye.r {
+        right: 14px;
+      }
+      .eye::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 4px;
+        height: 5px;
+        background: #2a2e34;
+        border-radius: 50%;
+      }
+      .mouth {
+        position: absolute;
+        bottom: 14px;
+        left: 50%;
+        width: 14px;
+        height: 7px;
+        border: 0 solid #2a2e34;
+        border-bottom-width: 2.5px;
+        border-radius: 0 0 14px 14px;
+        transform: translateX(-50%);
+      }
+      .cheek {
+        position: absolute;
+        top: 30px;
+        width: 7px;
+        height: 4px;
+        background: rgba(255, 150, 160, 0.8);
+        border-radius: 50%;
+      }
+      .cheek.l {
+        left: 6px;
+      }
+      .cheek.r {
+        right: 6px;
+      }
+      @keyframes bob {
+        50% {
+          transform: translateY(-7px) rotate(-2deg);
+        }
+      }
+      .ring {
+        position: absolute;
+        inset: -9px;
+        border-radius: 50%;
+        border: 2px dashed rgba(95, 208, 197, 0.5);
+        animation: spin 8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      h1 {
+        font-size: 30px;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      p {
+        color: #93a1c0;
+        margin: 0 0 22px;
+        font-size: 13px;
+      }
+      .bar {
+        height: 5px;
+        width: 80%;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #5fd0c5, #7aa2ff);
+        animation: load 1.6s ease-in-out infinite;
+      }
+      @keyframes load {
+        0% {
+          transform: translateX(-120%);
+        }
+        100% {
+          transform: translateX(320%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="logo">
+          <div class="badge">
+            <div class="blob">
+              <span class="cheek l"></span><span class="cheek r"></span>
+              <span class="eye l"></span><span class="eye r"></span>
+              <span class="mouth"></span>
+            </div>
+          </div>
+          <div class="ring"></div>
+        </div>
+        <h1>petTaTo</h1>
+        <p>Waking up your companion…</p>
+        <div class="bar"><i></i></div>
+      </div>
+    </div>
+  </body>
+</html>
