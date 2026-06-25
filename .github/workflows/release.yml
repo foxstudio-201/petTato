@@ -69,3 +69,20 @@ jobs:
           sed "s/{{VERSION}}/$VERSION/g" .github/RELEASE_NOTES.md > body.md
           gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body >> body.md
           gh release edit "$TAG" --repo "$REPO" --draft=false --latest --notes-file body.md
+
+      - name: Tidy assets — keep installers + Win/Linux update metadata only
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          REPO="${{ github.repository }}"
+          # Drop differential blockmaps, the macOS zip and its metadata (macOS
+          # can't auto-update unsigned anyway). latest.yml + latest-linux.yml stay
+          # so Windows/Linux auto-update keeps working.
+          for a in $(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name'); do
+            case "$a" in
+              *.blockmap|*-mac.zip|latest-mac.yml)
+                echo "removing $a"
+                gh release delete-asset "$TAG" "$a" --repo "$REPO" --yes ;;
+            esac
+          done
