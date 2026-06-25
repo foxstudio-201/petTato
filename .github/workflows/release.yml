@@ -56,11 +56,16 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Publish release with auto-generated changelog
+      - uses: actions/checkout@v4
+
+      - name: Publish release with install guide + changelog
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ github.ref_name }}"
           REPO="${{ github.repository }}"
-          NOTES=$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body)
-          gh release edit "$TAG" --repo "$REPO" --draft=false --latest --notes "$NOTES"
+          VERSION="${TAG#v}"
+          # Install guide (versioned template) + GitHub's auto-generated changelog.
+          sed "s/{{VERSION}}/$VERSION/g" .github/RELEASE_NOTES.md > body.md
+          gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body >> body.md
+          gh release edit "$TAG" --repo "$REPO" --draft=false --latest --notes-file body.md
