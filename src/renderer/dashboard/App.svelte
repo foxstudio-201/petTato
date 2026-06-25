@@ -61,6 +61,8 @@
   let connError = $state<string | null>(null)
   let packs = $state<any[]>([])
   let showGuide = $state(false)
+  let showModGuide = $state(false)
+  let modsDir = $state('')
   let voiceUnsupported = $state(false)
 
   function flash(msg: string) {
@@ -92,6 +94,11 @@
     if (location.hash.startsWith('#/')) tab = location.hash.slice(2)
     await connect()
     await loadPacks()
+    try {
+      modsDir = (await api.modsDir()).dir
+    } catch {
+      modsDir = ''
+    }
     voiceUnsupported = !((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
     unsub = subscribe((s) => (snap = s), (l) => flash('💬 ' + l.text))
     setInterval(async () => {
@@ -453,10 +460,10 @@
             <div class="card-head"><Icon name="puzzle" size={20} color="var(--green)" /><h3>{tr('Mini-game')}</h3></div>
             {#if !game}
               <p class="muted">{tr('Win games to boost happiness, curiosity and social stats.')}</p>
-              <button class="btn" onclick={startGame}><Icon name="playCircle" size={18} color="#052420" /> {tr('New game')} ({cfg.interaction.quizDifficulty})</button>
+              <button class="btn" onclick={startGame}><Icon name="playCircle" size={18} color="#052420" /> {tr('New game')} ({tr(cfg.interaction.quizDifficulty)})</button>
               {#if gameResult}<p class="result">{gameResult}</p>{/if}
             {:else}
-              <span class="badge">{game.kind}</span>
+              <span class="badge">{tr('game:' + game.kind)}</span>
               <h2 style="margin:10px 0 18px;">{game.prompt}</h2>
               <div class="grid two">
                 {#each game.options as opt}<button class="btn secondary opt" onclick={() => answer(opt)}>{opt}</button>{/each}
@@ -484,8 +491,20 @@
 
         {:else if tab === 'mods'}
           <div class="card">
-            <div class="card-head"><Icon name="cube" size={20} color="var(--indigo)" /><h3>{tr('Installed mods')}</h3></div>
+            <div class="card-head" style="justify-content:space-between;">
+              <div class="row" style="gap:10px;"><Icon name="cube" size={20} color="var(--indigo)" /><h3>{tr('Installed mods')}</h3></div>
+              <div class="row" style="gap:8px;">
+                <button class="btn secondary" onclick={() => (showModGuide = true)}><Icon name="info" size={16} color="var(--accent-2)" /> {tr('Mod guide')}</button>
+                <button class="btn" onclick={() => api.openModsFolder()}><Icon name="cube" size={16} color="#052420" /> {tr('Open mods folder')}</button>
+              </div>
+            </div>
             <p class="muted">{tr('Drop mods into the mods/ folder in your data directory, then restart.')}</p>
+            {#if modsDir}
+              <div class="field" style="margin:4px 0 12px;">
+                <label>{tr('Mods folder')}</label>
+                <code style="display:block;word-break:break-all;">{modsDir}</code>
+              </div>
+            {/if}
             {#if mods.length}
               <ul class="rows">{#each mods as m}<li><span><b>{m.meta?.name ?? m.id}</b> <span class="muted">v{m.meta?.version ?? '?'}</span></span><span class="muted">{m.meta?.author ?? ''}</span></li>{/each}</ul>
             {:else}<p class="muted">{tr('No mods installed. See the Modding Guide.')}</p>{/if}
@@ -601,6 +620,48 @@
   "icon": "icon.png"
 }`}</pre>
         <p class="muted">{tr('Required animations: idle, walk, run, jump, sleeping, happy, excited, sad, hungry, talking, playing, eating, sick, exploring, sitting, bored, returningHome. Missing ones fall back to idle. Run npm run gen:assets to produce a reference pack you can edit.')}</p>
+      </div>
+    </div>
+  {/if}
+
+  {#if showModGuide}
+    <div class="modal-backdrop" onclick={() => (showModGuide = false)} role="presentation">
+      <div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div class="card-head" style="justify-content:space-between;">
+          <div class="row" style="gap:10px;"><Icon name="cube" size={20} color="var(--indigo)" /><h3>{tr('How to install a mod')}</h3></div>
+          <button class="btn ghost" onclick={() => (showModGuide = false)}>✕</button>
+        </div>
+        <p class="muted">{tr('Create a folder inside mods/ and drop a mod.json into it, then restart petTaTo.')}</p>
+        <p class="muted" style="margin:10px 0 4px;">{tr('Your mods folder is located at:')}</p>
+        <ul class="guide">
+          <li>Linux: <code>~/.config/petTaTo/mods/</code></li>
+          <li>Windows: <code>%APPDATA%/petTaTo/mods/</code></li>
+          <li>macOS: <code>~/Library/Application Support/petTaTo/mods/</code></li>
+        </ul>
+        <pre class="json">{`my-mod/
+  mod.json
+
+mod.json:
+{
+  "id": "my-mod",
+  "name": "My Cool Mod",
+  "version": "1.0.0",
+  "author": "you",
+  "personalities": [
+    { "id": "zen", "name": "Zen", "activityRate": 0.6,
+      "happinessDecay": 0.6, "socialNeed": 0.7,
+      "exploration": 0.8, "talkativeness": 0.4, "tone": "serene" }
+  ],
+  "dialogue": ["Breathe in… breathe out… hello {name}."],
+  "spritePacks": ["sprites/myanimals"]
+}`}</pre>
+        <p class="muted" style="margin-top:10px;">{tr('A mod can add:')}</p>
+        <ul class="guide">
+          <li>{tr('Custom personalities — selectable in the Pet tab.')}</li>
+          <li>{tr('Extra dialogue lines your pet says.')}</li>
+          <li>{tr('Sprite & house packs — new looks for your pet.')}</li>
+        </ul>
+        <p class="muted">{tr('Restart petTaTo after adding or removing a mod.')}</p>
       </div>
     </div>
   {/if}

@@ -9,6 +9,7 @@ import {
   screen,
   dialog,
   session,
+  shell,
   type IpcMainInvokeEvent
 } from 'electron'
 import { join, dirname } from 'node:path'
@@ -107,7 +108,10 @@ async function bootstrap(): Promise<void> {
       platform.setAutostart(en)
       engine.config.update({ system: { ...engine.config.get().system, autostart: en } })
     },
-    onCommand: (text) => commands.run(text)
+    onCommand: (text) => commands.run(text),
+    onOpenModsFolder: () => {
+      void shell.openPath(paths.mods())
+    }
   })
   try {
     await api.start(cfg.system.apiPort)

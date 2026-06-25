@@ -102,6 +102,16 @@ const en: Record<string, string> = {
   'Win games to boost happiness, curiosity and social stats.':
     'Win games to boost happiness, curiosity and social stats.',
   'New game': 'New game',
+  easy: 'easy',
+  medium: 'medium',
+  hard: 'hard',
+  'game:math': 'Math',
+  'game:quiz': 'Quiz',
+  'game:memory': 'Memory',
+  'game:puzzle': 'Pattern',
+  'game:truefalse': 'True / False',
+  'game:odd': 'Odd one out',
+  'game:bigger': 'Bigger number',
 
   // --- saves ---
   'Save manager': 'Save manager',
@@ -114,6 +124,18 @@ const en: Record<string, string> = {
   'Drop mods into the mods/ folder in your data directory, then restart.':
     'Drop mods into the mods/ folder in your data directory, then restart.',
   'No mods installed. See the Modding Guide.': 'No mods installed. See the Modding Guide.',
+  'Mod guide': 'Mod guide',
+  'Open mods folder': 'Open mods folder',
+  'Mods folder': 'Mods folder',
+  'How to install a mod': 'How to install a mod',
+  'Create a folder inside mods/ and drop a mod.json into it, then restart petTaTo.':
+    'Create a folder inside mods/ and drop a mod.json into it, then restart petTaTo.',
+  'Your mods folder is located at:': 'Your mods folder is located at:',
+  'A mod can add:': 'A mod can add:',
+  'Custom personalities — selectable in the Pet tab.': 'Custom personalities — selectable in the Pet tab.',
+  'Extra dialogue lines your pet says.': 'Extra dialogue lines your pet says.',
+  'Sprite & house packs — new looks for your pet.': 'Sprite & house packs — new looks for your pet.',
+  'Restart petTaTo after adding or removing a mod.': 'Restart petTaTo after adding or removing a mod.',
 
   // --- settings ---
   Language: 'Language',

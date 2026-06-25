@@ -19,6 +19,7 @@ export interface ServerDeps {
   onRestore: (file: string) => Promise<boolean>
   onAutostart: (enabled: boolean) => void
   onCommand: (text: string) => unknown
+  onOpenModsFolder: () => void
 }
 
 /**
@@ -109,6 +110,12 @@ export class ApiServer {
             })
         : []
       res.json(mods)
+    })
+
+    app.get('/api/mods/dir', (_req, res) => res.json({ dir: paths.mods() }))
+    app.post('/api/mods/open', (_req, res) => {
+      this.deps.onOpenModsFolder()
+      res.json({ ok: true })
     })
 
     // ---- interaction endpoints ------------------------------------------

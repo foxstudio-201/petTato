@@ -26,7 +26,14 @@ import {
   groundY
 } from './movement.js'
 import { DialogueEngine, type DialogueContext } from './dialogue.js'
-import { INTERACTION_EFFECTS, makeMiniGame, type MiniGame } from './interactions.js'
+import {
+  INTERACTION_EFFECTS,
+  makeMiniGame,
+  miniGameWinLine,
+  miniGameLoseLine,
+  miniGameExpiredLine,
+  type MiniGame
+} from './interactions.js'
 
 /** Public mini-game shape (never leaks the answer to the client). */
 export interface MiniGamePublic {
@@ -343,28 +350,30 @@ export class PetEngine extends EventEmitter {
 
   // ---- mini-games -------------------------------------------------------
   startMiniGame(): MiniGamePublic {
-    const g = makeMiniGame(this.config.get().interaction.quizDifficulty, Math.random)
+    const cfg = this.config.get()
+    const g = makeMiniGame(cfg.interaction.quizDifficulty, cfg.language, Math.random)
     this.activeGames.set(g.id, g)
     this.lockBehaviour('playing', 4000)
     return { id: g.id, kind: g.kind, prompt: g.prompt, options: g.options }
   }
 
   answerMiniGame(id: string, answer: string): { correct: boolean; line: DialogueLine; reward?: Partial<Stats> } {
+    const lang = this.config.get().language
     const g = this.activeGames.get(id)
-    if (!g) return { correct: false, line: { text: "Hmm, that game already ended!", source: 'minigame' } }
+    if (!g) return { correct: false, line: { text: miniGameExpiredLine(lang), source: 'minigame' } }
     this.activeGames.delete(id)
     const correct = String(answer).trim() === g.answer
     if (correct) {
       this.pet.stats = applyDelta(this.pet.stats, g.reward, this.config.get().interaction.rewardScale)
       this.repos.addMemory(this.pet.id, 'minigame', `Won a ${g.kind} game`, 2)
       this.repos.logInteraction(this.pet.id, 'play')
-      const line: DialogueLine = { text: 'Yay, correct! That was fun!', source: 'minigame' }
+      const line: DialogueLine = { text: miniGameWinLine(lang, Math.random), source: 'minigame' }
       this.say(line, 4000, false)
       this.emit('update', this.snapshot())
       return { correct, line, reward: g.reward }
     }
     this.pet.stats = applyDelta(this.pet.stats, { happiness: -2 })
-    const line: DialogueLine = { text: `Aw, not quite — it was "${g.answer}". Let's try again sometime!`, source: 'minigame' }
+    const line: DialogueLine = { text: miniGameLoseLine(lang, g.answer), source: 'minigame' }
     this.say(line, 5000, false)
     this.emit('update', this.snapshot())
     return { correct, line }

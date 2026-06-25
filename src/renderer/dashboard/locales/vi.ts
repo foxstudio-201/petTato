@@ -102,6 +102,16 @@ const vi: Record<string, string> = {
   'Win games to boost happiness, curiosity and social stats.':
     'Thắng để tăng vui vẻ, tò mò và giao tiếp.',
   'New game': 'Trò mới',
+  easy: 'dễ',
+  medium: 'trung bình',
+  hard: 'khó',
+  'game:math': 'Toán',
+  'game:quiz': 'Đố vui',
+  'game:memory': 'Ghi nhớ',
+  'game:puzzle': 'Quy luật',
+  'game:truefalse': 'Đúng / Sai',
+  'game:odd': 'Khác loại',
+  'game:bigger': 'Số lớn hơn',
 
   // --- saves ---
   'Save manager': 'Quản lý lưu trữ',
@@ -114,6 +124,18 @@ const vi: Record<string, string> = {
   'Drop mods into the mods/ folder in your data directory, then restart.':
     'Đặt mod vào thư mục mods/ trong thư mục dữ liệu, rồi khởi động lại.',
   'No mods installed. See the Modding Guide.': 'Chưa cài mod nào. Xem hướng dẫn tạo mod.',
+  'Mod guide': 'Hướng dẫn mod',
+  'Open mods folder': 'Mở thư mục mod',
+  'Mods folder': 'Thư mục mod',
+  'How to install a mod': 'Cách cài đặt mod',
+  'Create a folder inside mods/ and drop a mod.json into it, then restart petTaTo.':
+    'Tạo một thư mục con trong mods/ và bỏ tệp mod.json vào đó, rồi khởi động lại petTaTo.',
+  'Your mods folder is located at:': 'Thư mục mod của bạn nằm ở:',
+  'A mod can add:': 'Một mod có thể thêm:',
+  'Custom personalities — selectable in the Pet tab.': 'Tính cách tuỳ chỉnh — chọn được ở tab Thú cưng.',
+  'Extra dialogue lines your pet says.': 'Câu thoại bổ sung mà thú cưng sẽ nói.',
+  'Sprite & house packs — new looks for your pet.': 'Bộ sprite & nhà — diện mạo mới cho thú cưng.',
+  'Restart petTaTo after adding or removing a mod.': 'Khởi động lại petTaTo sau khi thêm hoặc xoá mod.',
 
   // --- settings ---
   Language: 'Ngôn ngữ',

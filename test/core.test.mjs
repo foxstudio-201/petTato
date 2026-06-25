@@ -41,9 +41,15 @@ test('emotions: happy when content', () => {
 
 test('minigame has a correct answer among its options', () => {
   for (const diff of ['easy', 'medium', 'hard']) {
-    const g = makeMiniGame(diff, Math.random)
-    assert.ok(g.options.includes(g.answer), `answer present for ${diff} ${g.kind}`)
-    assert.ok(g.options.length >= 2)
+    for (const lang of ['en', 'vi']) {
+      // Run several times so every random game kind is exercised in both languages.
+      for (let i = 0; i < 50; i++) {
+        const g = makeMiniGame(diff, lang, Math.random)
+        assert.ok(g.options.includes(g.answer), `answer present for ${diff}/${lang} ${g.kind}`)
+        assert.ok(g.options.length >= 2)
+        assert.ok(g.prompt.length > 0)
+      }
+    }
   }
 })
 
