@@ -1,20 +1,31 @@
 name: Release
 
-# Build petTaTo for Linux, Windows and macOS and publish the artifacts to a
-# GitHub Release. Triggered by pushing a version tag (e.g. v1.0.0). Each runner
-# builds for its own OS; electron-builder uploads to the release matching the
-# tag and writes the latest*.yml metadata used by the in-app auto-updater.
+# Build petTaTo for Linux, Windows and macOS and publish a GitHub Release.
+# Triggered by pushing a version tag (e.g. v1.0.0).
+#
+# Flow:
+#   prepare → delete any stale (draft) release for this tag so the build starts clean
+#   build   → each runner builds its OS and uploads artifacts + latest*.yml to a draft
+#   publish → flip the draft to a public release and attach auto-generated changelog
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove stale release for this tag (if any)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release delete "${{ github.ref_name }}" --repo "${{ github.repository }}" --yes --cleanup-tag=false || true
+
+  build:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -34,9 +45,22 @@ jobs:
       - name: Build renderer + main
         run: npm run build
 
-      - name: Build & publish desktop app
+      - name: Build & upload desktop app (draft release)
         run: npx electron-builder --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # No Apple Developer certificate available — skip macOS code signing.
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release with auto-generated changelog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          REPO="${{ github.repository }}"
+          NOTES=$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body)
+          gh release edit "$TAG" --repo "$REPO" --draft=false --latest --notes "$NOTES"
