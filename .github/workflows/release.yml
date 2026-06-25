@@ -1,0 +1,42 @@
+name: Release
+
+# Build petTaTo for Linux, Windows and macOS and publish the artifacts to a
+# GitHub Release. Triggered by pushing a version tag (e.g. v1.0.0). Each runner
+# builds for its own OS; electron-builder uploads to the release matching the
+# tag and writes the latest*.yml metadata used by the in-app auto-updater.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build renderer + main
+        run: npm run build
+
+      - name: Build & publish desktop app
+        run: npx electron-builder --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No Apple Developer certificate available — skip macOS code signing.
+          CSC_IDENTITY_AUTO_DISCOVERY: false

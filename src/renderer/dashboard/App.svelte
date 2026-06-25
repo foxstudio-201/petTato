@@ -64,6 +64,7 @@
   let showModGuide = $state(false)
   let modsDir = $state('')
   let voiceUnsupported = $state(false)
+  let upd = $state<{ phase: string; current?: string; version?: string; percent?: number; message?: string }>({ phase: 'idle' })
 
   function flash(msg: string) {
     toast = msg
@@ -99,8 +100,21 @@
     } catch {
       modsDir = ''
     }
+    try {
+      upd = await api.updateState()
+    } catch {
+      /* updater unavailable */
+    }
     voiceUnsupported = !((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
-    unsub = subscribe((s) => (snap = s), (l) => flash('💬 ' + l.text))
+    unsub = subscribe(
+      (s) => (snap = s),
+      (l) => flash('💬 ' + l.text),
+      (s) => {
+        upd = { ...upd, ...s }
+        // Auto-download as soon as a newer release is found.
+        if (s.phase === 'available') api.updateDownload()
+      }
+    )
     setInterval(async () => {
       metrics = await api.metrics()
       if (tab === 'developer') logs = (await api.logs()).lines
@@ -192,6 +206,24 @@
     cfg.behaviour.freeRoam = v
     saveConfig()
   }
+
+  function checkUpdate() {
+    upd = { ...upd, phase: 'checking', message: undefined }
+    api.updateCheck()
+  }
+
+  let updStatus = $derived(() => {
+    switch (upd.phase) {
+      case 'checking': return tr('Checking for updates…')
+      case 'available': return tr('Update available') + (upd.version ? ' v' + upd.version : '')
+      case 'downloading': return tr('Downloading update…') + ' ' + (upd.percent ?? 0) + '%'
+      case 'ready': return tr('Update ready') + (upd.version ? ' v' + upd.version : '')
+      case 'none': return tr("You're up to date.")
+      case 'dev': return tr('Updates only work in the installed app.')
+      case 'error': return tr('Update check failed') + (upd.message ? ': ' + upd.message : '')
+      default: return ''
+    }
+  })
 
   function setLanguage(code: string) {
     if (!cfg) return
@@ -553,6 +585,26 @@
               <div class="switch"><span class="sw-label"><Icon name="palette" size={18} color="var(--accent-2)" /> {tr('High contrast UI')}</span><input type="checkbox" bind:checked={cfg.accessibility.highContrast} onchange={saveConfig} /></div>
               <div class="field" style="margin-top:14px;"><label>{tr('UI scale')} · {cfg.accessibility.uiScale.toFixed(2)}×</label><input type="range" min="0.8" max="1.6" step="0.05" bind:value={cfg.accessibility.uiScale} onchange={saveConfig} /></div>
             </div>
+          </div>
+
+          <div class="card" style="margin-top:16px;">
+            <div class="card-head" style="justify-content:space-between;">
+              <div class="row" style="gap:10px;"><Icon name="download" size={20} color="var(--accent)" /><h3>{tr('Updates')}</h3></div>
+              <div class="row" style="gap:8px;">
+                {#if upd.phase === 'ready'}
+                  <button class="btn" onclick={() => api.updateInstall()}><Icon name="power" size={16} color="#052420" /> {tr('Restart & install')}</button>
+                {:else}
+                  <button class="btn secondary" disabled={upd.phase === 'checking' || upd.phase === 'downloading'} onclick={checkUpdate}><Icon name="download" size={16} color="var(--accent)" /> {tr('Check for updates')}</button>
+                {/if}
+              </div>
+            </div>
+            <p class="muted" style="margin:0;">{tr('Current version')}: <b>{upd.current ?? '—'}</b></p>
+            {#if updStatus()}
+              <p class="muted" style="margin:8px 0 0;font-size:13px;">{updStatus()}</p>
+            {/if}
+            {#if upd.phase === 'downloading'}
+              <div class="progress" style="margin-top:10px;"><span style={`width:${upd.percent ?? 0}%`}></span></div>
+            {/if}
           </div>
 
         {:else if tab === 'developer'}
@@ -1072,6 +1124,21 @@ mod.json:
     background: color-mix(in srgb, var(--accent) 18%, transparent);
     color: var(--text);
     font-weight: 600;
+  }
+
+  /* update progress bar */
+  .progress {
+    height: 8px;
+    border-radius: 6px;
+    background: var(--track);
+    overflow: hidden;
+  }
+  .progress span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 6px;
+    transition: width 0.2s ease;
   }
 
   /* language buttons */

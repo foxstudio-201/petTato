@@ -8,6 +8,7 @@ import { listPacks } from '../assets/generate.js'
 import { platform } from '../platform/index.js'
 import { paths } from '../paths.js'
 import { log } from '../logger.js'
+import type { Updater } from '../updater.js'
 import type { InteractionType } from '../../shared/types.js'
 
 export interface ServerDeps {
@@ -20,6 +21,8 @@ export interface ServerDeps {
   onAutostart: (enabled: boolean) => void
   onCommand: (text: string) => unknown
   onOpenModsFolder: () => void
+  updater: Updater
+  appVersion: string
 }
 
 /**
@@ -36,6 +39,7 @@ export class ApiServer {
     this.configure()
     deps.engine.on('update', (snap) => this.broadcast('update', snap))
     deps.engine.on('speech', (line) => this.broadcast('speech', line))
+    deps.updater.on('state', (state) => this.broadcast('updater', state))
   }
 
   private configure(): void {
@@ -116,6 +120,23 @@ export class ApiServer {
     app.post('/api/mods/open', (_req, res) => {
       this.deps.onOpenModsFolder()
       res.json({ ok: true })
+    })
+
+    // ---- auto-update -----------------------------------------------------
+    app.get('/api/update/state', (_req, res) =>
+      res.json({ current: this.deps.appVersion, ...this.deps.updater.lastState })
+    )
+    app.post('/api/update/check', (_req, res) => {
+      void this.deps.updater.check()
+      res.json({ ok: true })
+    })
+    app.post('/api/update/download', (_req, res) => {
+      void this.deps.updater.download()
+      res.json({ ok: true })
+    })
+    app.post('/api/update/install', (_req, res) => {
+      res.json({ ok: true })
+      this.deps.updater.install()
     })
 
     // ---- interaction endpoints ------------------------------------------

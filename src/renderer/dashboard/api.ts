@@ -37,6 +37,10 @@ export const api = {
   mods: () => j<any[]>('/api/mods'),
   modsDir: () => j<{ dir: string }>('/api/mods/dir'),
   openModsFolder: () => post('/api/mods/open'),
+  updateState: () => j<any>('/api/update/state'),
+  updateCheck: () => post('/api/update/check'),
+  updateDownload: () => post('/api/update/download'),
+  updateInstall: () => post('/api/update/install'),
   packs: () => j<any[]>('/api/packs'),
   backups: () => j<string[]>('/api/backups'),
   command: (text: string) => post('/api/command', { text }),
@@ -67,9 +71,14 @@ export const api = {
 }
 
 /** Subscribe to live snapshot updates over Server-Sent Events. */
-export function subscribe(onUpdate: (s: PetSnapshot) => void, onSpeech?: (l: any) => void): () => void {
+export function subscribe(
+  onUpdate: (s: PetSnapshot) => void,
+  onSpeech?: (l: any) => void,
+  onUpdater?: (s: any) => void
+): () => void {
   const es = new EventSource(API_BASE + '/api/events')
   es.addEventListener('update', (e) => onUpdate(JSON.parse((e as MessageEvent).data)))
   if (onSpeech) es.addEventListener('speech', (e) => onSpeech(JSON.parse((e as MessageEvent).data)))
+  if (onUpdater) es.addEventListener('updater', (e) => onUpdater(JSON.parse((e as MessageEvent).data)))
   return () => es.close()
 }

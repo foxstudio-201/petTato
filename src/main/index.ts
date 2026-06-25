@@ -18,6 +18,7 @@ import { existsSync, copyFileSync } from 'node:fs'
 import { PetEngine } from './core/engine.js'
 import { CommandEngine } from './core/commands.js'
 import { ApiServer } from './server/api.js'
+import { Updater } from './updater.js'
 import { ensureAssets, ensureAllBuiltins, listPacks, importPack } from './assets/generate.js'
 import { ModManager } from './mods/loader.js'
 import { platform } from './platform/index.js'
@@ -43,6 +44,7 @@ if (process.platform === 'linux') {
 let engine: PetEngine
 let commands: CommandEngine
 let api: ApiServer
+let updater: Updater
 let mods: ModManager
 let petWindow: BrowserWindow | null = null
 let dashboardWindow: BrowserWindow | null = null
@@ -97,6 +99,7 @@ async function bootstrap(): Promise<void> {
 
   // 5. Local API + web control panel
   const rendererDir = join(__dirname, '..', 'renderer')
+  updater = new Updater()
   api = new ApiServer({
     engine,
     rendererDir,
@@ -111,7 +114,9 @@ async function bootstrap(): Promise<void> {
     onCommand: (text) => commands.run(text),
     onOpenModsFolder: () => {
       void shell.openPath(paths.mods())
-    }
+    },
+    updater,
+    appVersion: app.getVersion()
   })
   try {
     await api.start(cfg.system.apiPort)

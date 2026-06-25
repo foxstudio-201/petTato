@@ -2,6 +2,13 @@ appId: com.pettato.desktop
 productName: petTaTo
 copyright: Copyright © petTaTo
 
+# Auto-update source: GitHub Releases. electron-builder also writes the
+# latest*.yml metadata files used by electron-updater to detect new versions.
+publish:
+  provider: github
+  owner: foxstudio-201
+  repo: petTato
+
 directories:
   buildResources: build
   output: dist
@@ -52,6 +59,7 @@ nsis:
 mac:
   target:
     - dmg
+    - zip # required by electron-updater for macOS auto-update
   category: public.app-category.entertainment
   icon: build/icon.png
   hardenedRuntime: true
