@@ -1,35 +1,25 @@
-name: Release
+name: Build & Release
 
-# Build petTaTo for Linux, Windows and macOS and publish a GitHub Release.
-# Triggered by pushing a version tag (e.g. v1.0.0).
-#
-# Flow:
-#   prepare → delete any stale (draft) release for this tag so the build starts clean
-#   build   → each runner builds its OS and uploads artifacts + latest*.yml to a draft
-#   publish → flip the draft to a public release and attach auto-generated changelog
+# Build petTaTo for Windows, Linux and macOS, then attach ONLY the installer
+# files to a single GitHub Release. We build with `--publish never` and upload
+# via softprops, so no auto-update metadata (latest*.yml / .blockmap / mac .zip)
+# ever lands on the release page — just the files users actually download.
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Remove stale release for this tag (if any)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release delete "${{ github.ref_name }}" --repo "${{ github.repository }}" --yes --cleanup-tag=false || true
-
   build:
-    needs: prepare
+    name: Build ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -45,44 +35,92 @@ jobs:
       - name: Build renderer + main
         run: npm run build
 
-      - name: Build & upload desktop app (draft release)
-        run: npx electron-builder --publish always
+      - name: Build installers (no publish)
+        run: npx electron-builder --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # No Apple Developer certificate available — skip macOS code signing.
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_IDENTITY_AUTO_DISCOVERY: false # no Apple cert — skip macOS signing
 
-  publish:
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          path: |
+            dist/*.exe
+            dist/*.msi
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+          if-no-files-found: ignore
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
 
-      - name: Publish release with install guide + changelog
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ github.ref_name }}"
-          REPO="${{ github.repository }}"
-          VERSION="${TAG#v}"
-          # Install guide (versioned template) + GitHub's auto-generated changelog.
-          sed "s/{{VERSION}}/$VERSION/g" .github/RELEASE_NOTES.md > body.md
-          gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" --jq .body >> body.md
-          gh release edit "$TAG" --repo "$REPO" --draft=false --latest --notes-file body.md
+      - name: Get version
+        id: version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-      - name: Tidy assets — keep installers + Win/Linux update metadata only
+      - name: Download all installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-files
+          merge-multiple: true
+
+      - name: List release files
+        run: find release-files -type f | sort
+
+      # Start from a clean slate so old auto-update assets from earlier runs
+      # (latest*.yml, .blockmap, mac .zip) don't linger on the release.
+      - name: Remove existing release for this tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ github.ref_name }}"
-          REPO="${{ github.repository }}"
-          # Drop differential blockmaps, the macOS zip and its metadata (macOS
-          # can't auto-update unsigned anyway). latest.yml + latest-linux.yml stay
-          # so Windows/Linux auto-update keeps working.
-          for a in $(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name'); do
-            case "$a" in
-              *.blockmap|*-mac.zip|latest-mac.yml)
-                echo "removing $a"
-                gh release delete-asset "$TAG" "$a" --repo "$REPO" --yes ;;
-            esac
-          done
+        run: gh release delete "${{ github.ref_name }}" --repo "${{ github.repository }}" --yes --cleanup-tag=false || true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: petTaTo v${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            release-files/*.exe
+            release-files/*.msi
+            release-files/*.dmg
+            release-files/*.AppImage
+            release-files/*.deb
+            release-files/*.rpm
+          body: |
+            ## petTaTo v${{ steps.version.outputs.VERSION }} 🐾
+
+            Thú cưng ảo offline sống ngay trên màn hình của bạn — không cloud, không tài khoản, không theo dõi. Mọi thứ chạy trên máy bạn.
+
+            ![version](https://img.shields.io/badge/version-${{ steps.version.outputs.VERSION }}-4ade80?style=flat-square&labelColor=0a0a0a)
+            ![Windows](https://img.shields.io/badge/Windows-0078D4?style=flat-square&labelColor=0a0a0a&logo=windows11&logoColor=white)
+            ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&labelColor=0a0a0a&logo=linux&logoColor=white)
+            ![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&labelColor=0a0a0a&logo=apple&logoColor=white)
+
+            ### ⬇️ Tải về / Download
+
+            | Nền tảng | File | Ghi chú |
+            |----------|------|---------|
+            | 🪟 Windows | `petTaTo-Setup-${{ steps.version.outputs.VERSION }}.exe` | Trình cài đặt (khuyến nghị) |
+            | 🪟 Windows | `petTaTo-${{ steps.version.outputs.VERSION }}.msi` | Bản MSI (cài theo nhóm) |
+            | 🍎 macOS (Apple Silicon) | `petTaTo-${{ steps.version.outputs.VERSION }}-arm64.dmg` | Kéo vào Applications |
+            | 🐧 Linux | `petTaTo-${{ steps.version.outputs.VERSION }}.AppImage` | Chạy trực tiếp |
+            | 🐧 Linux | `pettato_${{ steps.version.outputs.VERSION }}_amd64.deb` | Debian / Ubuntu |
+            | 🐧 Linux | `pettato-${{ steps.version.outputs.VERSION }}.x86_64.rpm` | Fedora / RHEL |
+
+            > **Yêu cầu:** Windows 10/11 (64-bit), Linux x64, hoặc macOS Apple Silicon
+            > ⚠️ **Windows:** SmartScreen có thể cảnh báo lần đầu → **More info → Run anyway**
+            > 🍎 **macOS** (chưa ký số): chuột phải vào app → **Open**, hoặc chạy `xattr -dr com.apple.quarantine /Applications/petTaTo.app`
+            > 🐧 **Linux AppImage:** `chmod +x petTaTo-*.AppImage && ./petTaTo-*.AppImage`

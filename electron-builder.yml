@@ -59,7 +59,6 @@ nsis:
 mac:
   target:
     - dmg
-    - zip # required by electron-updater for macOS auto-update
   category: public.app-category.entertainment
   icon: build/icon.png
   hardenedRuntime: true
